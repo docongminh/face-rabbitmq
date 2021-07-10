@@ -1,0 +1,18 @@
+version: "3"
+services:
+  worker:
+    # replace username/repo:tag with your name and image details
+    image: cristiando0902/worker:1.0
+    # command: bash
+    command: bash /source/init.sh
+    volumes: 
+      - ./:/source
+      - ./model_storage:/model_storage
+      - ./stores:/stores
+    container_name: "worker"
+      # - ./rnn-text-classification-tf:/rnn-text-classification-tf
+    # ports:
+    #  - "1506:1506"
+    # restart: always
+    tty: true
+    
