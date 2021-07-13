@@ -20,7 +20,7 @@ class MtcnnEngine:
 
         """
         bbox, landmark = self.detector.detect_face(face_img, det_type = 0)
-        if ret is None:
+        if bbox is None or landmark is None:
             return None
         if bbox.shape[0]==0:
             return None, 0
