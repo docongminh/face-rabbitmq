@@ -4,6 +4,7 @@ import base64
 import re
 import sys
 import time
+import json
 from rabbitmq import config
 from rabbitmq import publisher
 sys.path.append('..')
@@ -20,12 +21,12 @@ def base64_to_image(base64_string):
 
     return image
 
-def error_response(ch, message):
+def error_response(ch, method, message):
     """
         Send error response to Response Queue.\
         After that, Server get error nessage from Response Queue to show on client side
     """
-    data_json = json.dumps(new_message)
+    data_json = json.dumps(message)
     publisher.send(exchange_name=config.broker["exchange_name"],
                 key=config.routing_keys["response_key"],
                 message=data_json)

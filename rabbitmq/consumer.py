@@ -22,43 +22,45 @@ class Consumer:
 
         channel = self.connection.channel()
         channel.exchange_declare(exchange=config.broker["exchange_name"],
-									exchange_type=config.broker["exchange_type"])
+							exchange_type=config.broker["exchange_type"])
         channel.queue_declare(queue=config.broker["detect_queue"],
-                                durable=True)
+                            durable=False)
         channel.queue_bind(exchange=config.broker["exchange_name"],
-                            queue=config.broker["detect_queue"],
-                            routing_key=config.routing_keys["detect_key"])
+                        queue=config.broker["detect_queue"],
+                        routing_key=config.routing_keys["detect_key"])
         
         channel.basic_consume(queue=config.broker["detect_queue"],
-                                on_message_callback=self.callback,
-                                auto_ack=True)
+                            on_message_callback=self.callback,
+                            auto_ack=False)
         channel.start_consuming()
         print("Begin listening at:  ", config.broker["detect_queue"])
 
-    @staticmethod
-    def callback(ch, method, properties, body):
-
+    def callback(self, ch, method, properties, body):
+        # super(Consumer).__init__(self)
         start_time = time.time()
         content = json.loads(body.decode(encoding="utf-8"))
+        print(content)
         detect_message = {}
         # check image base64 string exist value
         if 'image' not in content:
             detect_message["message"] = "No image in message"
-            consumer_utils.error_response(ch, detect_message)
+            consumer_utils.error_response(ch, method, detect_message)
+            return
         # decode base64
         imageContent = content['image']
         try:
-            imgdata = consumer_utils.base64_to_image(imageContent)
+            self.imgdata = consumer_utils.base64_to_image(imageContent)
         except:
             detect_message["message"] = "image invalid. Can not decode base64 image"
-            consumer_utils.error_response(ch, detect_message)
+            consumer_utils.error_response(ch, method, detect_message)
+            return
         # execute detect
-        faces_aligned, bboxs, num_face = self.mtcnn.get_faces(imgdata)
+        faces_aligned, bboxs, num_face = self.mtcnn.get_faces(self.imgdata)
         detect_message["detect_time"] = time.time()-start_time
         # check num of faces
         if num_face == 0:
             detect_message["message"] = "No face detected"
-            consumer_utils.error_response(ch, detect_message)
+            consumer_utils.error_response(ch, method, detect_message)
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
         data = []
