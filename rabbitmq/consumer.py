@@ -39,7 +39,6 @@ class Consumer:
         # super(Consumer).__init__(self)
         start_time = time.time()
         content = json.loads(body.decode(encoding="utf-8"))
-        print(content)
         detect_message = {}
         # check image base64 string exist value
         if 'image' not in content:
@@ -64,16 +63,16 @@ class Consumer:
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
         data = []
-        for i in num_face:
+        for i in range(0, num_face):
             meta_face = {}
-            meta_face["face"] = faces_aligned[i]
-            meta_face["bbox"] = bboxs[i]
+            meta_face["face"] = faces_aligned[i].tolist()
+            meta_face["bbox"] = bboxs[i].tolist()
             data.append(meta_face)
 
         detect_message["result"] = data
         detect_message["num_faces"] = num_face
         data_json = json.dumps(detect_message)
-        consumer_utils.send(exchange_name=config.broker["exchange_name"],
+        publisher.send(exchange_name=config.broker["exchange_name"],
                         key=config.routing_keys["extract_key"],
                         message=data_json)
         ch.basic_ack(delivery_tag=method.delivery_tag)
