@@ -1,13 +1,12 @@
 version: "3"
 services:
-  worker:
-    # replace username/repo:tag with your name and image details
+  detect:
     image: cristiando0902/worker:1.0
-    # command: bash
-    command: bash /source/init.sh
+    command: bash
+    # command: bash /source/init.sh
     volumes: 
       - ./:/source
-      - ./model_storage:/model_storage
+      - ./models:/models
       - ./stores:/stores
-    container_name: "worker"
+    container_name: "detect"
     tty: true
