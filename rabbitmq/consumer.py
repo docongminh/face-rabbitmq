@@ -32,8 +32,9 @@ class Consumer:
         channel.basic_consume(queue=config.broker["detect_queue"],
                             on_message_callback=self.callback,
                             auto_ack=False)
-        channel.start_consuming()
+
         print("Begin listening at:  ", config.broker["detect_queue"])
+        channel.start_consuming()
 
     def callback(self, ch, method, properties, body):
         # super(Consumer).__init__(self)
@@ -62,16 +63,18 @@ class Consumer:
             consumer_utils.error_response(ch, method, detect_message)
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
-        data = []
+        data = {}
         for i in range(0, num_face):
             meta_face = {}
             meta_face["face"] = faces_aligned[i].tolist()
             meta_face["bbox"] = bboxs[i].tolist()
-            data.append(meta_face)
-
+            idx_key = "index_face{}".format(i)
+            data[idx_key] = meta_face
+        #
         detect_message["result"] = data
         detect_message["num_faces"] = num_face
         data_json = json.dumps(detect_message)
+        # print(data_json)
         publisher.send(exchange_name=config.broker["exchange_name"],
                         key=config.routing_keys["extract_key"],
                         message=data_json)
