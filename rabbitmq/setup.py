@@ -1,8 +1,11 @@
 import pika
 from rabbitmq import config
 import logging
+import os
 
-logging.basicConfig(filename='log_setup_rabbitmq.log',
+if not os.path.exists("./logs"):
+	os.mkdir("./logs")
+logging.basicConfig(filename='./logs/setup_rabbitmq.log',
                         filemode='a',
                         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                         datefmt='%H:%M:%S',

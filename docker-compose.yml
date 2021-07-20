@@ -1,12 +1,23 @@
 version: "3"
 services:
-  detect:
-    image: cristiando0902/worker:1.0
-    command: bash
-    # command: bash /source/init.sh
-    volumes: 
-      - ./:/source
-      - ./models:/models
-      - ./stores:/stores
-    container_name: "detect"
-    tty: true
+    detect:
+        image: cristiando0902/worker:1.0
+        # command: bash
+        command: python3 /source/start_detect.py
+        volumes: 
+        - ./:/source
+        - ./models:/models
+        container_name: "detect"
+        tty: true
+    extract:
+        image: cristiando0902/worker:1.0
+        # command: bash
+        command: python3 /source/start_extract.py
+        volumes: 
+            - ./:/source
+            - ./models:/models
+        container_name: "extract"
+        tty: true
+ 
+
+  

@@ -9,76 +9,47 @@ from rabbitmq import config
 from rabbitmq import publisher
 from rabbitmq import setup
 from rabbitmq import consumer_utils
-sys.path.append('..')
-from detect_service import engine
+from abc import ABCMeta, abstractmethod
 
-class Consumer:
-    def __init__(self, model_path):
-        self.model_path = model_path
-        self.mtcnn = engine.MtcnnEngine(self.model_path)
+class Consumer(metaclass=ABCMeta):
+    """
+        Base class for Rabbit MQ consumer
+        All consumers need to inherit this base class
+        And each new class needs to implement the "callback function" method
+    """
+    def __init__(self, config):
+        self.config = config
         self.connection = setup.connect(use_url=False)
     
     def start(self):
 
         channel = self.connection.channel()
-        channel.exchange_declare(exchange=config.broker["exchange_name"],
-							exchange_type=config.broker["exchange_type"])
-        channel.queue_declare(queue=config.broker["detect_queue"],
-                            durable=False)
-        channel.queue_bind(exchange=config.broker["exchange_name"],
-                        queue=config.broker["detect_queue"],
-                        routing_key=config.routing_keys["detect_key"])
-        
-        channel.basic_consume(queue=config.broker["detect_queue"],
+        # declare exchange type and name
+        channel.exchange_declare(exchange=self.config["exchange_name"],
+							exchange_type=self.config["exchange_type"])
+        # declare queue name
+        channel.queue_declare(queue=self.config["queue_name"],
+                            durable=self.config["durable"])
+        # config binding
+        channel.queue_bind(exchange=self.config["exchange_name"],
+                        queue=self.config["queue_name"],
+                        routing_key=self.config["binding_key"])
+        # consumer queue
+        channel.basic_consume(queue=self.config["queue_name"],
                             on_message_callback=self.callback,
                             auto_ack=False)
-
-        print("Begin listening at:  ", config.broker["detect_queue"])
+        print("Begin listening at:  ", self.config["queue_name"])
         channel.start_consuming()
 
-    def callback(self, ch, method, properties, body):
-        # super(Consumer).__init__(self)
-        start_time = time.time()
-        content = json.loads(body.decode(encoding="utf-8"))
-        detect_message = {}
-        # check image base64 string exist value
-        if 'image' not in content:
-            detect_message["message"] = "No image in message"
-            consumer_utils.error_response(ch, method, detect_message)
-            return
-        # decode base64
-        imageContent = content['image']
-        try:
-            self.imgdata = consumer_utils.base64_to_image(imageContent)
-        except:
-            detect_message["message"] = "image invalid. Can not decode base64 image"
-            consumer_utils.error_response(ch, method, detect_message)
-            return
-        # execute detect
-        faces_aligned, bboxs, num_face = self.mtcnn.get_faces(self.imgdata)
-        detect_message["detect_time"] = time.time()-start_time
-        # check num of faces
-        if num_face == 0:
-            detect_message["message"] = "No face detected"
-            consumer_utils.error_response(ch, method, detect_message)
-            ch.basic_ack(delivery_tag=method.delivery_tag)
-            return
-        data = {}
-        for i in range(0, num_face):
-            meta_face = {}
-            meta_face["face"] = faces_aligned[i].tolist()
-            meta_face["bbox"] = bboxs[i].tolist()
-            idx_key = "index_face{}".format(i)
-            data[idx_key] = meta_face
-        #
-        detect_message["result"] = data
-        detect_message["num_faces"] = num_face
-        data_json = json.dumps(detect_message)
-        # print(data_json)
-        publisher.send(exchange_name=config.broker["exchange_name"],
-                        key=config.routing_keys["extract_key"],
-                        message=data_json)
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+    @abstractmethod
+    def callback(self):
+        """
+            Should be override by all subclasses
+            Different consumer may have different configuration
+        """
+        pass
+
+
         
 
     
