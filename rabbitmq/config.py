@@ -20,6 +20,3 @@ routing_keys = {
 		"match_face_key": "matching",
 		"response_key": "response"
 }
-publisher = {}
-consumer = {}
-response = {}
