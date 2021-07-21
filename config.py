@@ -7,13 +7,13 @@ detect_service = {
     "rabbitmq_config": {
         "durable": True, #https://github.com/MassTransit/MassTransit/issues/370
         "exchange_name": "face_service",
-		"exchange_type": "direct",
+	"exchange_type": "direct",
         "binding_key": "detect",
-		"queue_name": "DETECTION"
+	"queue_name": "DETECTION"
     },
     "publisher_config": {
         "exchange_name": "face_service",
-		"routing_key": "extract"
+	"routing_key": "extract"
     }
 
 }
@@ -28,12 +28,12 @@ extract_service = {
     "rabbitmq_config": {
         "durable": True,
         "exchange_name": "face_service",
-		"exchange_type": "direct",
+	"exchange_type": "direct",
         "binding_key": "extract",
-		"queue_name": "EXTRACTION"
+	"queue_name": "EXTRACTION"
     },
     "publisher_config": {
         "exchange_name": "face_service",
-		"routing_key": "response"
+	"routing_key": "response"
     }
 }
