@@ -19,14 +19,12 @@ class Consumer(metaclass=ABCMeta):
     """
     def __init__(self, config):
         self.config = config
-        self.connection = setup.connect(use_url=False)
-    
-    def start(self):
 
-        channel = self.connection.channel()
+    def start_consumer(self, connection):
+        channel = connection.channel()
         # declare exchange type and name
         channel.exchange_declare(exchange=self.config["exchange_name"],
-							exchange_type=self.config["exchange_type"])
+                            exchange_type=self.config["exchange_type"])
         # declare queue name
         channel.queue_declare(queue=self.config["queue_name"],
                             durable=self.config["durable"])
@@ -40,6 +38,19 @@ class Consumer(metaclass=ABCMeta):
                             auto_ack=False)
         print("Begin listening at:  ", self.config["queue_name"])
         channel.start_consuming()
+        
+    def start(self):
+        try:
+            connection = setup.connect(use_url=False)
+            self.start_consumer(connection)   
+        except Exception as e:
+            print(e)
+            print("Reconnecting...")
+            while True:
+                connection = setup.connect(use_url=False)
+                if connection and connection.is_open:
+                    print("Reconnect successful !")
+                    self.start_consumer(connection)
 
     @abstractmethod
     def callback(self):
