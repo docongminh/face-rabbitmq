@@ -8,7 +8,6 @@ import json
 from rabbitmq import config
 from rabbitmq import publisher
 sys.path.append('..')
-from detect_service import engine
 
 
 def base64_to_image(base64_string):
