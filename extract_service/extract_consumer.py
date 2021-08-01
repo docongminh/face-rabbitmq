@@ -15,12 +15,29 @@ class ExtractConsumer(Consumer):
         self.model = ExtractModel(self.model_config)
     
     def callback(self, ch, method, properties, body):
+        """
+            Callback function extract consume
+            >> message
+            >> {
+                    "phase": "insert" || "search"
+                    "num_faces": num_face_exist_in_image
+                    "detect_time": time
+                    "extract_time": time
+                    "data": {
+                        "1": {
+                            "embedding": embedding vector extracted,
+                            "bbox": []
+                        }
+                    }
+                } 
+        """
         start_time = time.time()
         content = json.loads(body.decode(encoding="utf-8"))
+        print("extract content: ", content)
         extract_message = {}
         #
         data = content["data"]
-        num_face = content["num_faces"]
+        num_faces = content["num_faces"]
         detect_time = content["detect_time"]
         keys = list(data.keys())
         # print("keys: ", keys)
@@ -37,7 +54,9 @@ class ExtractConsumer(Consumer):
             extract_data["embedding"] = embedding.tolist()
             extract_data["bbox"] = bbox
             embedding_data[key] = extract_data
-        #
+        # message response
+        extract_message["phase"] = content["phase"]
+        extract_message["num_faces"] = num_faces
         extract_message["detect_time"] = detect_time
         extract_message["extract_time"] = time.time()-start_time
         extract_message["data"] = embedding_data
