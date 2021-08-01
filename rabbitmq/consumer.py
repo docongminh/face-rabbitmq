@@ -40,6 +40,12 @@ class Consumer(metaclass=ABCMeta):
         channel.start_consuming()
         
     def start(self):
+        """
+            This way to reconnection rabbitMQ  is not best solution. I will update using retry soon.
+            reference: - https://pika.readthedocs.io/en/stable/examples/blocking_consume_recover_multiple_hosts.html
+                    - https://www.programmersought.com/article/90767106580/ 
+                    - https://github.com/invl/retry
+        """
         try:
             connection = setup.connect(use_url=False)
             self.start_consumer(connection)   
