@@ -34,19 +34,20 @@ extract_service = {
     },
     "publisher_config": {
         "exchange_name": "face_service",
-        "routing_key": "response"
+        "routing_key": "search"
     }
 }
 
-host = None
+# https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach
+# this is why use ip address rather than localhost: https://docs.docker.com/docker-for-mac/networking/#vpn-passthrough
 search_service = {
     "milvus_config": {
-        # https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach
-        "host": host, # this is why use ip address rather than localhost: https://docs.docker.com/docker-for-mac/networking/#vpn-passthrough
+        "host": "192.168.82.113",
         "port": 19530,
         "embedding_size": 128,
         "collection_name": "Face_Embedding",
-        "metric": "L2"
+        "metric": "L2",
+        "threshold": 1.0
     },
     "rabbitmq_config": {
         "durable": True,
