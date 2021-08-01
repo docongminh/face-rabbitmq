@@ -14,8 +14,24 @@ class DetectConsumer(Consumer):
         self.model = MtcnnEngine(self.model_config)
     
     def callback(self, ch, method, properties, body):
+        """
+            Callback function detect consume
+            >> message
+            >> {
+                    "phase": "insert" || "search"
+                    "num_faces": num_face_exist_in_image
+                    "detect_time": time
+                    "data": {
+                        "1": {
+                            "face": face_aligned,
+                            "bbox": []
+                        }
+                    }
+                } 
+        """
         start_time = time.time()
         content = json.loads(body.decode(encoding="utf-8"))
+        print("detect content: ", content)
         detect_message = {}
         # check image base64 string exist value
         if 'image' not in content:
@@ -23,9 +39,9 @@ class DetectConsumer(Consumer):
             consumer_utils.error_response(ch, method, detect_message)
             return
         # decode base64
-        imageContent = content['image']
+        raw_image = content['image']
         try:
-            self.imgdata = consumer_utils.base64_to_image(imageContent)
+            self.imgdata = consumer_utils.base64_to_image(raw_image)
         except:
             detect_message["message"] = "image invalid. Can not decode base64 image"
             consumer_utils.error_response(ch, method, detect_message)
@@ -47,6 +63,7 @@ class DetectConsumer(Consumer):
             idx_key = str(i)
             data[idx_key] = meta_face
         #
+        detect_message["phase"] = content["phase"]
         detect_message["data"] = data
         detect_message["num_faces"] = num_face
         data_json = json.dumps(detect_message)
