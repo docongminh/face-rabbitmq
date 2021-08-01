@@ -90,8 +90,9 @@ services:
         container_name: "extract"
         tty: true
     search:
-        image: cristiando0902/milvus_search:1.0
-        command: bash
+        image: cristiando0902/milvus_search:2.0
+        # command: bash
+        command: ["/source/tools/wait_service.sh", "rabbitmq:5672", "--timeout=60", "--", "python3", "/source/start_search.py"]
         volumes: 
             - ./:/source
         container_name: "search"
