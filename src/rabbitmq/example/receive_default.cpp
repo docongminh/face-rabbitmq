@@ -7,7 +7,7 @@
 
 int main(void)
 {
-        SimplePocoHandler handler(HOST, 5672);
+        PocoHandler handler(HOST, 5672);
 
     AMQP::Connection connection(&handler, AMQP::Login("guest", "guest"), "/");
 

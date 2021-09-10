@@ -9,7 +9,7 @@ int DirectExchange(void)
     const std::string queue = "TEST";
     const std::string routingkey = "info";
 
-    SimplePocoHandler handler(HOST, 5672);
+    PocoHandler handler(HOST, 5672);
 
     AMQP::Connection connection(&handler, AMQP::Login("guest", "guest"), "/");
 

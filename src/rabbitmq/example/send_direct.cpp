@@ -7,7 +7,7 @@ int main(void)
 {
     const std::string severity = "0";
     const std::string msg = "Hello World!";
-    SimplePocoHandler handler(HOST, 5672);
+    PocoHandler handler(HOST, 5672);
 
     AMQP::Connection connection(&handler, AMQP::Login("guest", "guest"), "/");
 
