@@ -8,7 +8,7 @@ project(FaceService)
 Option(USE_OPENMP "openmp support" ON)
 
 file(GLOB_RECURSE SRC_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 )
 
 message(${SRC_FILES})
@@ -19,9 +19,13 @@ add_library(FaceService STATIC ${SRC_FILES})
 
 find_package(OpenCV)
 message("Opencv Version: ${OPENCV_VERSION}" )
-include_directories(${CMAKE_SOURCE_DIR}/ncnn/include/ncnn)
-link_directories(${CMAKE_SOURCE_DIR}/ncnn/lib)
-target_link_libraries(FaceService PUBLIC ${OpenCV_LIBS} ncnn)
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/ncnn/include/ncnn)
+link_directories(${CMAKE_SOURCE_DIR}/3rdparty/ncnn/lib)
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/amqpcpp/include)
+link_directories(${CMAKE_SOURCE_DIR}/3rdparty/amqpcpp/lib)
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/kashmir)
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/json)
+target_link_libraries(FaceService PUBLIC ${OpenCV_LIBS} ncnn amqpcpp PocoNet PocoFoundation)
 #
 find_package(OpenMP)
 # if(NOT TARGET OpenMP::OpenMP_CXX AND (OpenMP_CXX_FOUND OR OPENMP_FOUND))
@@ -38,7 +42,7 @@ target_include_directories(FaceService
     PUBLIC
         # include for detect face
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/utils>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/common>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/detection>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/detection/detect_face/retinaface>
         # -------------------include align and detect keypoint face---------------------
@@ -47,14 +51,17 @@ target_include_directories(FaceService
         # -------------------include extract feature---------------------
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/extraction>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/extraction/mobilefacenet>
+        # -------------------include rabbitmq---------------------
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/rabbitmq>
 )
 #
-# add_executable(main ${CMAKE_SOURCE_DIR}/src/main.cpp)
-add_executable(similarity ${CMAKE_SOURCE_DIR}/src/test_similarity.cpp)
-# add_executable(detect ${CMAKE_SOURCE_DIR}/src/test_detect.cpp)
-# add_executable(align ${CMAKE_SOURCE_DIR}/src/test_alignment.cpp)
+add_executable(detect_worker ${CMAKE_SOURCE_DIR}/src/detect_worker.cpp)
+add_executable(extract_worker ${CMAKE_SOURCE_DIR}/src/extract_worker.cpp)
+# add_executable(test ${CMAKE_SOURCE_DIR}/src/test.cpp)
+
 # 
-# target_link_libraries(main PUBLIC FaceService)
-target_link_libraries(similarity PUBLIC FaceService)
+target_link_libraries(detect_worker PUBLIC FaceService)
+target_link_libraries(extract_worker PUBLIC FaceService)
+# target_link_libraries(test PUBLIC FaceService)
 # target_link_libraries(detect PUBLIC FaceService)
 # target_link_libraries(align PUBLIC FaceService)
